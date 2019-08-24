@@ -28,7 +28,7 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
         {
             /* 
-                Si no se usa [ApiControler] la validación se debe hacer a mano.
+                Si no se usa [ApiController] la validación se debe hacer a mano.
                 Del mismo modo que es necesario indicar con [FromBody] como debe realizarse el mapeo del Dto.
                        
                 // validate request
