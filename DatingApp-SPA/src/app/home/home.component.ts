@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { AlertifyService } from '../_services/alertify.service';
 
 @Component({
   selector: 'app-home',
@@ -9,9 +10,13 @@ import { HttpClient } from '@angular/common/http';
 export class HomeComponent implements OnInit {
   registerMode = false;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private alertify: AlertifyService) { }
 
   ngOnInit() {
+    if (localStorage.getItem('token')) {
+      localStorage.removeItem('token');
+      this.alertify.message('logged out');
+    }
   }
 
   registerToggle() {
