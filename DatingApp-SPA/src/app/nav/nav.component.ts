@@ -3,6 +3,7 @@ import { logging } from 'protractor';
 import { AuthService } from '../_services/auth.service';
 import { AlertifyService } from '../_services/alertify.service';
 import { Router } from '@angular/router';
+import { CommService } from '../_services/comm.service';
 
 @Component({
   selector: 'app-nav',
@@ -11,10 +12,15 @@ import { Router } from '@angular/router';
 })
 export class NavComponent implements OnInit {
   model: any = {};
+  photoUrl: string;
+  editFormDirty: boolean;
 
-  constructor(public authService: AuthService, private alertify: AlertifyService, private router: Router) { }
+  constructor(public authService: AuthService, private alertify: AlertifyService, private router: Router,
+    private commService: CommService) { }
 
   ngOnInit() {
+    this.authService.currentPhotoUrl.subscribe(photoUrl => this.photoUrl = photoUrl);
+    this.commService.observableMemberEditFormDirty.subscribe(editFormDirty => this.editFormDirty = editFormDirty);
   }
 
   login() {
@@ -33,7 +39,17 @@ export class NavComponent implements OnInit {
   }
 
   logout() {
-    this.router.navigate(['/home']);
+    if (!this.editFormDirty
+        || (this.editFormDirty && confirm('Are you sure you want to continue? Any unsaved changes will be lost'))) {
+      if (this.editFormDirty) {
+        this.commService.changeEditMemberFormDirty(false);
+      }
+      localStorage.removeItem('token');
+      localStorage.removeItem('currentUser');
+      this.authService.decodedToken = null;
+      this.authService.currentUser = null;
+      this.alertify.message('logged out');
+      this.router.navigate(['/home']);
+    }
   }
-
 }
