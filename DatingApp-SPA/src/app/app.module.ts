@@ -31,6 +31,7 @@ import { MemberEditResolver } from './_resolvers/member-edit.resolver';
 import { PreventUnsavedChangesGuard } from './_guards/prevent-unsaved-changes.guard';
 import { PhotoEditorComponent } from './members/photo-editor/photo-editor.component';
 import { CommService } from './_services/comm.service';
+import { ListResolver } from './_resolvers/list.resolver';
 
 export class CustomHammerConfig extends HammerGestureConfig {
    overrides = {
@@ -89,6 +90,7 @@ export function tokenGetter() {
       MemberDetailResolver,
       MemberListResolver,
       MemberEditResolver,
+      ListResolver,
       PreventUnsavedChangesGuard,
       CommService
    ],
