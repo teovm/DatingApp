@@ -33,8 +33,7 @@ export class MemberMessagesComponent implements OnInit {
           }
         }
       })
-    )  
-    .subscribe(
+    ).subscribe(
       messages => {
         this.messages = messages;
       },

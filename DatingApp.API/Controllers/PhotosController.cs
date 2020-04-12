@@ -41,7 +41,7 @@ namespace DatingApp.API.Controllers
         [HttpGet("{id}", Name = "GetPhoto")]
         public async Task<IActionResult> GetPhoto(int id) 
         {
-            var photoFromRepo = await _repo.GetPhoto(id);
+            var photoFromRepo = await _repo.GetPhoto(id, User.CurrentUserId());
 
             var photo = _mapper.Map<PhotoForReturnDto>(photoFromRepo);
 
@@ -51,10 +51,10 @@ namespace DatingApp.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddPhotoForUser(int userId, [FromForm]PhotoForCreationDto photoForCreationDto) 
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
-            var userFromRepo = await _repo.GetUser(userId);
+            var userFromRepo = await _repo.GetUser(userId, User.CurrentUserId());
 
             var file = photoForCreationDto.File;
 
@@ -100,15 +100,15 @@ namespace DatingApp.API.Controllers
         [HttpPost("{id}/setMain")]
         public async Task<IActionResult> setMainPhoto(int userId, int id) 
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
-            var user = await _repo.GetUser(userId);
+            var user = await _repo.GetUser(userId, User.CurrentUserId());
             
             if (!user.Photos.Any(p => p.Id == id))
                 return Unauthorized();
 
-            var photoFromRepo = await _repo.GetPhoto(id);
+            var photoFromRepo = await _repo.GetPhoto(id, User.CurrentUserId());
 
             if (photoFromRepo.IsMain)
                 return BadRequest("This is already the main photo");
@@ -128,15 +128,15 @@ namespace DatingApp.API.Controllers
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePhoto(int userId, int id) {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
-            var user = await _repo.GetUser(userId);
+            var user = await _repo.GetUser(userId, User.CurrentUserId());
             
             if (!user.Photos.Any(p => p.Id == id))
                 return Unauthorized();
 
-            var photoFromRepo = await _repo.GetPhoto(id);
+            var photoFromRepo = await _repo.GetPhoto(id, User.CurrentUserId());
 
             if (photoFromRepo.IsMain)
                 return BadRequest("You cannot delete your main photo");

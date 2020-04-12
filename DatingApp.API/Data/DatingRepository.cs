@@ -12,7 +12,7 @@ namespace DatingApp.API.Data
     {
 
         private readonly DataContext _context;
-
+        
         public DatingRepository(DataContext context)
         {
             _context = context;
@@ -38,14 +38,37 @@ namespace DatingApp.API.Data
             return await _context.Photos.Where(p => p.UserId == userId).FirstOrDefaultAsync(p => p.IsMain);
         }
 
-        public async Task<Photo> GetPhoto(int id)
+        public async Task<Photo> GetPhoto(int id, int idCurrentUser)
         {
-            return await _context.Photos.FirstOrDefaultAsync(p => p.Id == id);
+            var photo = await _context.Photos.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == id);
+
+            if (photo.UserId != idCurrentUser && !photo.IsApproved)
+                return null;
+            
+            return photo;
         }
 
-        public async Task<User> GetUser(int id)
+        public async Task<Photo> GetPhotoForApproval(int id)
         {
+            return await _context.Photos.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<User> GetUser(int id, int idCurrentUser)
+        {
+            if (id == idCurrentUser)
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+                user.Photos = await _context.Photos.IgnoreQueryFilters().Where(p => p.UserId == user.Id).ToListAsync();
+                return user;
+            }
+
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task<IEnumerable<Photo>> GetPhotosForModeration()
+        {
+            var photos =  await _context.Photos.IgnoreQueryFilters().Where(p => !p.IsApproved).ToListAsync();
+            return photos;
         }
 
         public async Task<PagedList<User>> GetUsers(UserParams userParams)
@@ -65,8 +88,8 @@ namespace DatingApp.API.Data
 
             if (userParams.Likees)
             {
-               var userLikees = await GetUserLikes(userParams.UserId, userParams.Likers);
-               users = users.Where(u => userLikees.Contains(u.Id));
+                var userLikees = await GetUserLikes(userParams.UserId, userParams.Likers);
+                users = users.Where(u => userLikees.Contains(u.Id));
             }
 
             if (userParams.MinAge != 18 || userParams.MaxAge != 99)
@@ -99,11 +122,11 @@ namespace DatingApp.API.Data
 
             if (likers)
             {
-               return user.Likers.Where(u => u.LikeeId == id).Select(i => i.LikerId);
+                return user.Likers.Where(u => u.LikeeId == id).Select(i => i.LikerId);
             }
-            else 
+            else
             {
-               return user.Likees.Where(u => u.LikerId == id).Select(i => i.LikeeId);
+                return user.Likees.Where(u => u.LikerId == id).Select(i => i.LikeeId);
             }
         }
 
@@ -141,7 +164,7 @@ namespace DatingApp.API.Data
         public async Task<IEnumerable<Message>> GetMessagesThread(int userId, int recpientId)
         {
             var messages = await _context.Messages
-                .Where(m => (m.RecipientId == userId && m.SenderId == recpientId && !m.RecipientDeleted) 
+                .Where(m => (m.RecipientId == userId && m.SenderId == recpientId && !m.RecipientDeleted)
                         || (m.RecipientId == recpientId && m.SenderId == userId && !m.SenderDeleted))
                 .OrderByDescending(m => m.MessageSent)
                 .ToListAsync();

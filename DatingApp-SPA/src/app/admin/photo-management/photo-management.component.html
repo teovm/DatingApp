@@ -1,3 +1,19 @@
-<p>
-  photo-management works!
-</p>
+<div *ngFor="let user of usersWithNewPhotos">
+  <div class="row mt-2 ml-2">
+    <h5>{{user.knownAs}}</h5>
+  </div>
+  <div class="row">
+  <div class="col-sm-2" *ngFor="let photo of user.photosForModeration">
+    <img src="{{photo.url}}" class="img-thumbnail p-1" alt="" />
+    <div class="text-center mt-1">
+      <button class="btn btn-sm mr-1" type="button" 
+        (click)="approvePhoto(photo.id, user.idUser)" 
+        [ngClass]="'btn-success'">Approve
+      </button>
+      <button class="btn btn-sm btn-danger" type="button"
+        (click)="rejectPhoto(photo.id, user.idUser)" 
+        [ngClass]="'btn-danger'">Reject
+      </button>
+    </div>
+  </div>
+</div>

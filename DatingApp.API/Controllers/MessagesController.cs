@@ -28,7 +28,7 @@ namespace DatingApp.API.Controllers
         [HttpGet("{id}", Name = "GetMessage")]
         public async Task<IActionResult> GetMessage(int userId, int id)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
             var messageFromRepo = await _repo.GetMessage(id);
@@ -42,7 +42,7 @@ namespace DatingApp.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMessagesForUser(int userId, [FromQuery]MessageParams messageParams)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
             messageParams.UserId = userId;
@@ -59,7 +59,7 @@ namespace DatingApp.API.Controllers
         [HttpGet("thread/{recipientId}")]
         public async Task<IActionResult> GetMessageThread(int userId, int recipientId)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
             var messageFromRepo = await _repo.GetMessagesThread(userId, recipientId);
@@ -72,14 +72,14 @@ namespace DatingApp.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateMessage(int userId, MessageForCreationDto messageForCreationDto)
         {
-            var sender = await _repo.GetUser(userId);
+            var sender = await _repo.GetUser(userId, User.CurrentUserId());
 
-            if (sender.Id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (sender.Id != User.CurrentUserId())
                 return Unauthorized();
 
             messageForCreationDto.SenderId = sender.Id;
 
-            var recipient = await _repo.GetUser(messageForCreationDto.RecipientId);
+            var recipient = await _repo.GetUser(messageForCreationDto.RecipientId, User.CurrentUserId());
 
             if (recipient == null)
                 return BadRequest("Could not find user");
@@ -100,7 +100,7 @@ namespace DatingApp.API.Controllers
         [HttpPost("{id}")]
         public async Task<IActionResult> DeleteMessage(int id, int userId) 
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
             var messageFromRepo = await _repo.GetMessage(id);
@@ -123,7 +123,7 @@ namespace DatingApp.API.Controllers
         [HttpPost("{id}/read")]
         public async Task<IActionResult> MarkMessageAsRead(int userId, int id)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != User.CurrentUserId())
                 return Unauthorized();
 
             var message = await _repo.GetMessage(id);
